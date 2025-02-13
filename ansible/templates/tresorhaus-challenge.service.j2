@@ -1,0 +1,14 @@
+[Unit]
+Description=Tresorhaus Challenge Server
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory={{ app_dir }}
+ExecStart=/usr/bin/python3 {{ app_dir }}/src/landing_server.py
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
