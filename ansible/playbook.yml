@@ -38,12 +38,21 @@
         name: "{{ docker_network }}"
         state: present
 
+    - name: Remove existing challenge image
+      docker_image:
+        name: challenge-env
+        state: absent
+        force: yes
+    
     - name: Build challenge base image
       docker_image:
         name: challenge-env
         build:
           path: "{{ app_dir }}"
         source: build
+        force: yes
+        pull: yes
+        nocache: yes
 
     - name: Copy systemd service file
       template:
