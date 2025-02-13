@@ -1,0 +1,56 @@
+---
+- name: Install system dependencies
+  apt:
+    name:
+      - docker.io
+      - python3
+      - python3-pip
+      - git
+      - openssh-server
+    state: present
+    update_cache: yes
+
+- name: Create project directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  with_items:
+    - "{{ app_dir }}"
+    - "{{ app_dir }}/src"
+    - "{{ app_dir }}/scripts"
+
+- name: Copy source files
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: '0755'
+  with_items:
+    - { src: 'src/landing_server.py', dest: '{{ app_dir }}/src/' }
+    - { src: 'src/challenge.py', dest: '{{ app_dir }}/src/' }
+    - { src: 'src/obfuscator.py', dest: '{{ app_dir }}/src/' }
+    - { src: 'scripts/create_challenger.sh', dest: '{{ app_dir }}/scripts/' }
+    - { src: 'scripts/monitor_challenges.sh', dest: '{{ app_dir }}/scripts/' }
+
+- name: Copy Docker files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ app_dir }}/"
+  with_items:
+    - Dockerfile
+    - docker-compose.yml
+
+- name: Setup Docker network
+  docker_network:
+    name: "{{ docker_network }}"
+    state: present
+
+- name: Build Docker images
+  docker_compose:
+    project_src: "{{ app_dir }}"
+    build: yes
+
+- name: Start services
+  docker_compose:
+    project_src: "{{ app_dir }}"
+    state: present
