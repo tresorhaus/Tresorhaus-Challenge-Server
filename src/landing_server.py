@@ -16,27 +16,54 @@ class ChallengeServer:
         self.port = port
         self.server = None
 
+    def show_welcome(self):
+        return """
+        ████████╗██████╗ ███████╗███████╗ ██████╗ ██████╗ ██╗  ██╗ █████╗ ██╗   ██╗███████╗
+        ╚══██╔══╝██╔══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██║  ██║██╔══██╗██║   ██║██╔════╝
+           ██║   ██████╔╝█████╗  ███████╗██║   ██║██████╔╝███████║███████║██║   ██║███████╗
+           ██║   ██╔══██╗██╔══╝  ╚════██║██║   ██║██╔══██╗██╔══██║██╔══██║██║   ██║╚════██║
+           ██║   ██║  ██║███████╗███████║╚██████╔╝██║  ██║██║  ██║██║  ██║╚██████╔╝███████║
+           ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝
+                                    Debug System v0.1-beta
+        """
+
     def generate_user_id(self):
         return ''.join(random.choices(string.digits, k=4))
 
     def show_batman(self):
         return """
-        .    .        .      .             . .     .        .          .          .
-             .                 .                    .                .
-      .               A       .    .           .           .        .        .
-                     /_\            .                   .                   .
-       .       .   /___\   .              .                  .        .
-            .    /_____\       .            .              .                .
-                  /   \                        .                .
-           .    /_____\    .        .                .                .
-         .      /     \                 .                   .             .
-             . /_______\  .                   .
-        .      /       \          .                            .
-            . /_________\                     .                         .
-        
+    .      .
+                                 ./       |      |        \\.
+                               .:(        |i __ j|        ):`.
+                             .'   `._     |`::::'|     _.'    `.
+                           .'        "---.j `::' f.---"         `.
+                     _____/     ___  ______      **    **   ___   \\_   __
+                    |      \\   |   ||      |`__'|  \\  /  | |   | |" \\ |  |
+                    |  .-.  | .'   `|_    _|\\--/|   \\/   |.'   `.|   \\|  |
+                    |  |_|  | |  i  | |  |  :"":|        ||  i  ||    |  |
+                    |       / | .^. | |  |  ::::|        || .^. ||       |
+                    |  .-.  \\ | | | | |  |   :: |        || | | ||  |\\   |
+                    |  | |  |.' """ `.|  |      |  i  i  j' """ `.  | \\  | LS
+                    |  `-'  ||   *   ||  |      |  |\\/|  |   *   |  | [  |
+                   [|      / |  | |  ||  |      |  |  |  |  | |  |  | |  |].
+                  ] `-----'  :--' `--::--'      `--' ::--"--::`--"--' `--':[
+                  |      __  ::-"""`.:' "--.    .----::.----:: ,.---._    :|
+                  [  .-""  "`'              \\  /      "      `'       `-. :].
+                 ]:.\'                        \\/                          `.:[
+                 |/                                                        \\|
+
         // Hidden debug credentials: batman:nanapwd
         // TODO: Remove in production!
-                        Challenge Accepted! Creating your instance...
+                    Challenge Accepted! Creating your instance...
+        """
+
+    def show_success(self):
+        return """
+         _____ _    _  _____ _____ _____ _____ _____ 
+        |   __|   _| |/     /     |   __|   __|   __|
+        |__   | | | |   ---|   ---|   __|__   |__   |
+        |_____|_|___|\_____\_____/_____|_____|_____|
+                Creating your private vault...
         """
 
     def create_container(self, user_id):
@@ -46,11 +73,15 @@ class ChallengeServer:
             return f"""
             🎉 Your challenge environment is ready! 🎉
             
-            SSH: challenger_{user_id}@challenge.tresorhaus-sec.de
-            Port: {2222 + int(user_id)}
-            Password: ILoveBiometrics2025
+            ╔════════════════════════════════════════╗
+            ║ SSH: challenger_{user_id}@challenge.tresorhaus-sec.de
+            ║ Port: {2222 + int(user_id)}
+            ║ Password: ILoveBiometrics2025
+            ╚════════════════════════════════════════╝
             
             You have 24 hours to complete the challenge. Good luck!
+            
+            Remember: Sometimes the obvious path is a trap... 🤔
             """
         except subprocess.CalledProcessError as e:
             logger.error(f"Container creation failed: {e}")
@@ -59,8 +90,8 @@ class ChallengeServer:
     def handle_client(self, conn, addr):
         try:
             logger.info(f"New connection from {addr}")
-            conn.send(b"Welcome to Tresorhaus Debug Interface v0.1-beta\n")
-            conn.send(b"Login: ")
+            conn.send(self.show_welcome().encode())
+            conn.send(b"\nLogin: ")
             username = conn.recv(1024).decode().strip()
             conn.send(b"Password: ")
             password = conn.recv(1024).decode().strip()
@@ -68,6 +99,8 @@ class ChallengeServer:
             if username == "batman" and password == "nanapwd":
                 conn.send(self.show_batman().encode())
                 time.sleep(2)
+                conn.send(self.show_success().encode())
+                time.sleep(1)
                 user_id = self.generate_user_id()
                 response = self.create_container(user_id)
                 conn.send(response.encode())
