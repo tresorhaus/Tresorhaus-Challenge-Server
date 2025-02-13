@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  landing-server:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: tresorhaus-landing
+    ports:
+      - "2222:2222"
+    volumes:
+      - ./src:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - CHALLENGE_NET=challenge_net
+    restart: unless-stopped
+    networks:
+      - challenge_net
+
+networks:
+  challenge_net:
+    driver: bridge
