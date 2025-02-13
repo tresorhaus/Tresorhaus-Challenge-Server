@@ -1,0 +1,6 @@
+---
+app_dir: /opt/tresorhaus-challenge
+docker_network: challenge_net
+base_port: 2222
+challenge_image: challenge-env
+cleanup_interval: 86400  # 24 hours in seconds
